@@ -3,7 +3,6 @@ use std::path::{Path, PathBuf};
 use std::io::{self, BufRead};
 use std::process::{Command, Stdio};
 
-
 struct Parameters {
     fps: u8,
     buffer_time: u8,
@@ -113,24 +112,6 @@ fn send_signal(pid: u32, sig: &str) -> std::io::Result<()> {
         .arg(pid.to_string())
         .status()
         .map(|_| ())
-
-
-//     let status = Command::new("killall")
-//        .arg(format!("-{sig}"))
-//        .arg("gpu-screen-recorder")
-//        .status()?;
-//
-//    if status.success() {
-//        println!("[SIGNAL] {sig} sent to gpu-screen-reco");
-//        return Ok(());
-//    }
-//
-//    Command::new("pkill")
-//        .arg("-f")
-//        .arg(format!("-{sig}"))
-//        .arg("gpu-screen-recorder")
-//        .status()
-//        .map(|_| ())
 }
 
 fn notify_send(title: &str, msg: &str) {
@@ -160,7 +141,7 @@ fn main() -> std::io::Result<()> {
     println!("\x1b]2;screen_record\x07");
     println!("Running at PID: {pid}");
     
-    // Listen for save or kill keybinds
+    // Listen for hyprland pass keybinds 
     for line in io::stdin().lock().lines() {
         let cmd = line?.trim().to_lowercase();
         if cmd == "save" {
