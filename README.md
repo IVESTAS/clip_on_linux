@@ -2,8 +2,8 @@ This is a gpu-screen-recorder script to save replay buffers for Hyprland. You wi
 in your hyprland.conf.
 
 Examples:
-    *bind = SUPER, F10, pass, screen_record, save
-    *bind = SUPER, F7,  pass, screen_record, kill
+    bind = SUPER, F10, pass, screen_record, save
+    bind = SUPER, F7,  pass, screen_record, kill
 
 You will also have to set the directory you want recordings to save into in main.rs.
 
