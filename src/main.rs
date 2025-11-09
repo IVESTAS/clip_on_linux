@@ -93,20 +93,13 @@ fn launch_gpu_screen_recorder(params: &Parameters) -> std::io::Result<u32> {
 
     let pid = child.id();
 
-    Command::new("notify-send")
-        .arg("gpu_screen_recorder launched")
-        .arg(&format!("Saving to {out_dir}"))
-        .stdout(Stdio::null())
-        .stderr(Stdio::null())
-        .spawn()
-        .ok();
+    notify_send("Replay buffer started", &format!("Saving to {out_dir}"));
 
     Ok(pid)
 
 }
 
 fn send_signal(pid: u32, sig: &str) -> std::io::Result<()> {
-
      Command::new("kill")
         .arg(format!("-{sig}"))
         .arg(pid.to_string())
@@ -115,7 +108,7 @@ fn send_signal(pid: u32, sig: &str) -> std::io::Result<()> {
 }
 
 fn notify_send(title: &str, msg: &str) {
-    let _ = Command::new("notify_send")
+    let _ = Command::new("notify-send")
         .arg(title)
         .arg(msg)
         .stdout(Stdio::null())
@@ -125,32 +118,26 @@ fn notify_send(title: &str, msg: &str) {
 
 fn main() -> std::io::Result<()> {
     let params = param_values();
-    let pid = launch_gpu_screen_recorder(&params)?;
+    let sr_pid = std::process::id();
 
     check_gpu_screen_recorder();
     check_output_directory().unwrap_or_else(|e| {
             eprintln!("Failed to create output_directory: {}", e);
             std::process::exit(1);
         });
-    launch_gpu_screen_recorder(&params).unwrap_or_else(|e| {
+    let record_pid = launch_gpu_screen_recorder(&params).unwrap_or_else(|e| {
         eprintln!("Failed to launch gpu-screen-recorder!: {}", e);
         std::process::exit(1);
     });
 
-    // Window title needed for pass in Hyprland 
-    println!("\x1b]2;screen_record\x07");
-    println!("Running at PID: {pid}");
+    println!("screen_record at PID: {sr_pid} | record pid: {record_pid}");
     
-    // Listen for hyprland pass keybinds 
+    // Listen for hyprland pass/kill keybinds 
     for line in io::stdin().lock().lines() {
         let cmd = line?.trim().to_lowercase();
         if cmd == "save" {
-            send_signal(pid, "SIGUSR1")?;
+            send_signal(record_pid, "SIGUSR1")?;
             notify_send("Saved last {}s", &format!("{}", params.buffer_time));
-        } else if matches!(cmd.as_str(), "kill" | "stop" | "quit") {
-            send_signal(pid, "SIGTERM")?; // might change to a better kill command
-            notify_send("gpu_screen_recorder killed!", "Quit");
-            break;
         }
     }
     Ok(())
